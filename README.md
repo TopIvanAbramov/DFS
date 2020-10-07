@@ -46,7 +46,7 @@ We have implemented such client commands in our Distributed File System:
 
 ## Architectural diagram.
 
-
+![alt text](https://drive.google.com/uc?export=view&id=1lh_-TPzPkJa-87jG1-NRmC2gUVNN6O4_)
 
 ## Description of communication protocol.
 
