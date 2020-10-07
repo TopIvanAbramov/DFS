@@ -85,9 +85,9 @@ def get_new_filename(name, extension):
         return name + "." + extension
 
 
-def put(master, source):
+def put(master, source, destination):
     size = os.path.getsize(source)
-    blocks = master.write(CURRENT_DIR + "/" + source, size)
+    blocks = master.write(CURRENT_DIR + "/" + destination, size)
     with open(source, 'rb') as f:
         for b in blocks:
             data = f.read(master.get_block_size())
@@ -154,7 +154,7 @@ def main():
             elif args[0] == "init":
                 init(master)
             elif args[0] == "put":
-                put(master, args[1])
+                put(master, args[1], args[2])
             elif args[0] == "rename" or args[0] == "move":
                 rename_move(master, args[1], args[2])
             elif args[0] == "delete":
