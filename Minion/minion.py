@@ -68,8 +68,14 @@ def parse_command_line_arguments():  # parse command arguments
 
 if __name__ == "__main__":
     if not os.path.isdir(DATA_DIR): os.mkdir(DATA_DIR)
-    HOST, TCP_PORT = parse_command_line_arguments()
-    con = rpyc.connect("localhost", port=2131)
+    try:
+        HOST, TCP_PORT = os.environ["HOST"], int(os.environ["TCP_PORT"])
+    except:
+        HOST, TCP_PORT = "0.0.0.0", 10001
+    try:
+        con = rpyc.connect(os.environ["MASTER_HOST"], port=int(os.environ["MASTER_PORT"]))
+    except:
+        con = rpyc.connect("localhost", port=2131)
     master = con.root.Master()
     master.register_minion(HOST, TCP_PORT)
     LOG.info("MINION WAS REGISTERED IN MASTER")
