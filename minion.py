@@ -1,6 +1,7 @@
 import rpyc
 import uuid
 import os
+import shutil
 import sys
 
 from rpyc.utils.server import ThreadedServer
@@ -11,6 +12,12 @@ DATA_DIR = "./minion/"
 class MinionService(rpyc.Service):
     class exposed_Minion():
         blocks = {}
+
+        def exposed_init(self):
+            shutil.rmtree(DATA_DIR, ignore_errors=True)
+            os.mkdir(DATA_DIR)
+            total, used, free = shutil.disk_usage(DATA_DIR)
+            return free
 
         def exposed_put(self, block_uuid, data, minions):
             with open(DATA_DIR + str(block_uuid), 'wb') as f:
