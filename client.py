@@ -192,7 +192,6 @@ def main():
                 raise NameError("Unknown command")
         except Exception as e:
             print(e.args[0])
-#            print(e)
 
 
 if __name__ == "__main__":
