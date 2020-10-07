@@ -3,7 +3,9 @@ import sys
 import os
 import logging
 
-CURRENT_DIR = "./"
+from anytree import NodeMixin, RenderTree, AnyNode
+
+CURRENT_DIR = "."
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
@@ -28,7 +30,7 @@ def read_from_minion(block_uuid,minion):
 def get(master, fname):
     name, extension = fname.split('.')
   
-    file_table = master.get_file_table_entry(fname)
+    file_table = master.get_file_table_entry(CURRENT_DIR + "/" + fname)
     if not file_table:
         LOG.info("404: file not found")
         return
@@ -54,8 +56,8 @@ def get(master, fname):
 def rename_move(master, old_path, new_path):
     master.change_filepath(old_path, new_path)
 
-def delete_file(master, file_path):
-    master.delete_file(file_path)
+def delete_file(master, path):
+    master.delete_file(CURRENT_DIR + "/" + path)
 
 def get_new_filename(name, extension):
     try:
@@ -78,7 +80,7 @@ def get_new_filename(name, extension):
 
 def put(master, source):
     size = os.path.getsize(source)
-    blocks = master.write(source,size)
+    blocks = master.write(CURRENT_DIR + "/" + source, size)
     with open(source, 'rb') as f:
       for b in blocks:
         data = f.read(master.get_block_size())
@@ -91,18 +93,30 @@ def file_info(master, fname):
   print(file_info)
 
 
-def list(master, source):
-    for file in master.list(source):
+def list(master):
+    for file in master.list(CURRENT_DIR):
         print(file)
     
-def change_dir(new_dir):
+def change_dir(master, new_dir):
     global CURRENT_DIR
     
     if new_dir == "~":
-        CURRENT_DIR = "./"
+        CURRENT_DIR = "."
     else:
-        CURRENT_DIR = str(new_dir)
+        if master.dir_exists(CURRENT_DIR + "/" + new_dir):
+            CURRENT_DIR = CURRENT_DIR + "/" + new_dir
+        else:
+            raise NameError("Directory not exists")
 
+def make_dir_at_path(master, dir_name):
+    if not "/" in dir_name:
+        master.make_dir_at_path(CURRENT_DIR + "/" + dir_name)
+    else:
+        raise NameError("Directory name cannot contain '/'")
+
+def dir_tree(master):
+    print(master.dir_tree())
+    
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
@@ -124,11 +138,15 @@ def main():
             elif args[0] == "delete":
                 delete_file(master, args[1])
             elif args[0] == "ls":
-                list(master, CURRENT_DIR)
+                list(master)
             elif args[0] == "cd":
-                change_dir(args[1])
+                change_dir(master, args[1])
             elif args[0] == "info":
                 file_info(master, args[1])
+            elif args[0] == "mkdir":
+                make_dir_at_path(master, args[1])
+            elif args[0] == "tree":
+                dir_tree(master)
             elif args[0] == "clear":
                 clear()
             else:
