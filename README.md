@@ -64,4 +64,7 @@ https://github.com/TopIvanAbramov/DFS
 
 ## 🔗 DockerHub link:
 
-https://hub.docker.com/r/project2ds/master
+https://hub.docker.com/u/project2ds
+
+Run `docker-compose up` in this project to check Distributed File System work.
+
