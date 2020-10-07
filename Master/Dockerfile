@@ -1,0 +1,7 @@
+FROM python:3.7.9-alpine3.11
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY dfs.conf .
+COPY datanode.py .
+COPY master.py .
+CMD ["python", "master.py"]
