@@ -125,6 +125,8 @@ def make_dir_at_path(master, dir_name):
     else:
         raise NameError("Directory name cannot contain '/'")
 
+def rm(master, force=True):
+    master.remove_dir(CURRENT_DIR)
 
 def dir_tree(master):
     print(master.dir_tree())
@@ -160,6 +162,12 @@ def main():
                 make_dir_at_path(master, args[1])
             elif args[0] == "tree":
                 dir_tree(master)
+            elif args[0] == "rm":
+                if len(args) == 2:
+                    if args[1] == "-f":
+                        rm(master, force=True)
+                    else:
+                        rm(master, force=False)
             elif args[0] == "clear":
                 clear()
             else:

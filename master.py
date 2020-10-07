@@ -136,6 +136,12 @@ class MasterService(rpyc.Service):
                 new_id = 0
             MasterService.exposed_Master.minions[str(new_id)] = (host, port)
             print("NEW MINION WAS REGISTERED")
+        
+        def exposed_remove_dir(CURRENT_DIR):
+            if master.dir_exists(CURRENT_DIR):
+                master.remove_dir(CURRENT_DIR)
+            else:
+                raise NameError("Directory not exists")
 
         def exposed_get_block_size(self):
             return self.__class__.block_size
