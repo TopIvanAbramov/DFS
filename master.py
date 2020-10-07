@@ -133,21 +133,23 @@ class MasterService(rpyc.Service):
             print("NEW MINION WAS REGISTERED")
         
         def exposed_remove_dir(self, path, force):
-            if master.dir_exists(path):
-                dir_node = master.get_dir_with_path(path)
+            if self.exposed_dir_exists(path):
+                dir_node = self.get_dir_with_path(path)
                 
                 if force:
-                    if bool(dir.files):
-                        for file_name in dir_node.files.keys():
-                            file_path = path + "/" + file_name
-                            self.exposed_delete_file(self, path)
+                    if bool(dir_node.files):
+                        keys = dir_node.files.keys()
                         
-                        for child in dir.children:
-                            self.remove_child(dir, child)
+                        for file_name in keys:
+                            file_path = path + "/" + file_name
+#                            self.exposed_delete_file(file_path)
+                        
+                        for child in dir_node.children:
                             self.exposed_remove_dir(self.node_path(child), True)
-#                        raise NameError("Cannot remove directory it has internal files, Use rm -f dir_path instead")
+                            self.remove_child(dir, child)
+                            
                 else:
-                    if bool(dir.files):
+                    if bool(dir_node.files):
                         raise NameError("Cannot remove directory it has internal files, Use rm -f dir_path instead")
                     else:
                         if bool(dir_node.children):
