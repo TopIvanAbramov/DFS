@@ -95,13 +95,9 @@ class MasterService(rpyc.Service):
         if dir != None:
             return dir.files[file_name].blocks
         else:
-            raise NameError("Error: {}\n{}\n".format(dir_path, path))
-#            return []
+            return []
         
-#        if fname in self.__class__.file_table:
-#            return self.__class__.file_table[fname]
-#        else:
-#            return None
+
 
     def exposed_get_block_size(self):
         return self.__class__.block_size
@@ -127,7 +123,7 @@ class MasterService(rpyc.Service):
 
             node = DataNode(metadata={
                                 "Size" : size,
-                                "Created at":  datetime.datetime.now()
+                                "Created at":  str(datetime.datetime.now())
                             },
                             blocks=blocks
             )
@@ -171,31 +167,8 @@ class MasterService(rpyc.Service):
     
 #   get stats about file: size, nodes
 
-    def exposed_file_info(self, fname):
-        file_table = self.exposed_get_file_table_entry(fname)
-        if not file_table:
-            LOG.info("404: file not found")
-            return
-        
-        size = 0
-        nodes = set()
-        
-        for block in file_table:
-            for m in [self.exposed_get_minions()[_] for _ in block[1]]:
-                data = self.read_from_minion(block[0], m)
-                host, port = m
-                nodes.add("{} : {}".format(host, port))
-                if data:
-                    size += sys.getsizeof(data)
-                    break
-                else:
-                    LOG.info("No blocks found. Possibly a corrupt file")
-          
-        size_in_mb = round(size / 1024 / 1024, 2)
-        
-        info = "File size: {} MB\n".format(size_in_mb) + "\nNodes adresses:\n" + "\n".join(nodes)
-        
-        return info
+    def exposed_file_info(self, path):
+        return self.get_data_node_with_path(path).metadata
         
     def read_from_minion(master, block_uuid, minion):
         host,port = minion
@@ -240,6 +213,16 @@ class MasterService(rpyc.Service):
            dir_node = find(root, lambda node: self.node_path(node) == dir_path)
            
            return dir_node
+    
+    def get_data_node_with_path(self, path):
+        dir_path = path[:path.rfind('/')]
+        
+        file_name = path.split('/')[-1]
+        
+        dir = self.get_dir_with_path(dir_path)
+        
+        return dir.files[file_name]
+        
            
     def exposed_make_dir_at_path(self, path):
         root = self.exposed_get_dir_tree()

@@ -89,8 +89,10 @@ def put(master, source):
         send_to_minion(block_uuid,data,minions)
         
 def file_info(master, fname):
-  file_info = master.file_info(fname)
-  print(file_info)
+  file_info = master.file_info(CURRENT_DIR + "/" + fname)
+  
+  for key in file_info:
+    print("{} : {}".format(key, file_info[key]))
 
 
 def list(master):
@@ -126,8 +128,7 @@ def main():
   
     while True:
         try:
-            print(">> ", end="")
-            args = input().split()
+            args = input(">> ").split()
             
             if args[0] == "get":
                 get(master,args[1])
