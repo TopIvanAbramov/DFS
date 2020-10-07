@@ -95,6 +95,9 @@ def put(master, source, destination):
             minions = [master.get_minions()[_] for _ in b[1]]
             send_to_minion(block_uuid, data, minions)
 
+def create_empty_file(master, destination):
+    size = 0
+    blocks = master.write(CURRENT_DIR + "/" + destination, size)
 
 def file_info(master, fname):
     file_info = master.file_info(CURRENT_DIR + "/" + fname)
@@ -122,6 +125,9 @@ def change_dir(master, new_dir):
 
 def move(master, file_path, new_dir):
     master.move(CURRENT_DIR + "/" + file_path, new_dir)
+
+def copy(master, file_path):
+    master.copy(CURRENT_DIR + "/" + file_path)
     
 def make_dir_at_path(master, dir_name):
     if not "/" in dir_name:
@@ -178,6 +184,10 @@ def main():
                 dir_tree(master)
             elif args[0] == "move":
                 move(master, args[1], args[2])
+            elif args[0] == "copy":
+                copy(master, args[1])
+            elif args[0] == "create":
+                create_empty_file(master, args[1])
             elif args[0] == "rm":
                 if args[1] == "-f":
                     rm(master, args[2], force=True)
