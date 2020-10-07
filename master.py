@@ -132,6 +132,16 @@ class MasterService(rpyc.Service):
             MasterService.exposed_Master.minions[str(new_id)] = (host, port)
             print("NEW MINION WAS REGISTERED")
 
+        def exposed_init(self):
+            total_size = 0
+            for minion in self.__class__.minions.values():
+                host, port = minion
+                con = rpyc.connect(host, port=port)
+                minion = con.root.Minion()
+                total_size += minion.init()
+            return total_size // self.__class__.replication_factor
+
+
         def exposed_get_block_size(self):
             return self.__class__.block_size
 
