@@ -120,6 +120,9 @@ def change_dir(master, new_dir):
             raise NameError("Directory not exists")
 
 
+def move(master, file_path, new_dir):
+    master.move(file_path, new_dir)
+    
 def make_dir_at_path(master, dir_name):
     if not "/" in dir_name:
         master.make_dir_at_path(CURRENT_DIR + "/" + dir_name)
@@ -169,6 +172,8 @@ def main():
                 make_dir_at_path(master, args[1])
             elif args[0] == "tree":
                 dir_tree(master)
+            elif args[0] == "tree":
+                move(master, args[1], args[2])
             elif args[0] == "rm":
                 if args[1] == "-f":
                     rm(master, args[2], force=True)

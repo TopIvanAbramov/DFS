@@ -11,6 +11,7 @@ import pickle
 import sys
 import os
 import datetime
+import logging
 
 from rpyc.utils.server import ThreadedServer
 from anytree import NodeMixin, RenderTree, AnyNode
@@ -20,6 +21,9 @@ from datanode import DataNode
 from collections import defaultdict
 
 INTERVAL = 3
+
+logging.basicConfig(level=logging.DEBUG)
+LOG = logging.getLogger(__name__)
 
 
 def check_for_alive_minions():
@@ -33,7 +37,7 @@ def check_for_alive_minions():
             result_of_check = a_socket.connect_ex(location)
 
             if result_of_check != 0:
-                print(minion, location, "DEAD")
+                LOG.info(f"{minion} {location} DEAD")
                 to_remove.add(minion)
 
         for minion in to_remove:
@@ -60,8 +64,6 @@ def set_conf():
     if os.path.isfile('fs.img'):
         MasterService.exposed_Master.minions, MasterService.exposed_Master.file_table, MasterService.exposed_Master.block_mapping, MasterService.exposed_Master.dir_tree = pickle.load(
             open('fs.img', 'rb'))
-
-
 
 
 class MasterService(rpyc.Service):
@@ -131,6 +133,7 @@ class MasterService(rpyc.Service):
                 new_id = 0
             MasterService.exposed_Master.minions[str(new_id)] = (host, port)
             print("NEW MINION WAS REGISTERED")
+            LOG.info("NEW MINION WAS REGISTERED")
         
         def exposed_remove_dir(self, path, force):
             if self.exposed_dir_exists(path):
@@ -142,9 +145,11 @@ class MasterService(rpyc.Service):
                         
                         for file_name in keys:
                             file_path = path + "/" + file_name
-#                            self.exposed_delete_file(file_path)
+                            self.exposed_delete_file(file_path)
                         
-                        for child in dir_node.children:
+                        childrens = dir_node.children
+                        
+                        for child in childrens:
                             self.exposed_remove_dir(self.node_path(child), True)
                             self.remove_child(dir, child)
                             
@@ -175,7 +180,6 @@ class MasterService(rpyc.Service):
                 minion = con.root.Minion()
                 total_size += minion.init()
             return total_size // self.__class__.replication_factor
-
 
         def exposed_get_block_size(self):
             return self.__class__.block_size

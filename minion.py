@@ -3,11 +3,16 @@ import uuid
 import os
 import shutil
 import sys
+import logging
 
 from rpyc.utils.server import ThreadedServer
 
 DATA_DIR = "./minion/"
 
+logging.basicConfig(
+    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+    level=logging.DEBUG)
+LOG = logging.getLogger(__name__)
 
 class MinionService(rpyc.Service):
     class exposed_Minion():
@@ -22,23 +27,23 @@ class MinionService(rpyc.Service):
         def exposed_put(self, block_uuid, data, minions):
             with open(DATA_DIR + str(block_uuid), 'wb') as f:
                 f.write(data)
-                print("Save file")
+                LOG.info("Save file")
             if len(minions) > 0:
                 self.forward(block_uuid, data, minions)
 
         def exposed_get(self, block_uuid):
-            print("\nsUID: " + str(block_uuid))
+            LOG.info("\nsUID: " + str(block_uuid))
             block_addr = DATA_DIR + str(block_uuid)
             if not os.path.isfile(block_addr):
-                print("No such file")
+                LOG.info("No such file")
                 return None
 
             with open(block_addr, 'rb') as f:
                 return f.read()
 
         def forward(self, block_uuid, data, minions):
-            print("forwaring to:")
-            print(block_uuid, minions)
+            LOG.info("forwaring to:")
+            LOG.info((block_uuid, minions))
             minion = minions[0]
             minions = minions[1:]
             host, port = minion
@@ -67,6 +72,6 @@ if __name__ == "__main__":
     con = rpyc.connect("localhost", port=2131)
     master = con.root.Master()
     master.register_minion(HOST, TCP_PORT)
-    print("MINION WAS REGISTERED IN MASTER")
+    LOG.info("MINION WAS REGISTERED IN MASTER")
     t = ThreadedServer(MinionService, port=TCP_PORT)
     t.start()
