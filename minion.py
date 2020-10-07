@@ -9,7 +9,9 @@ from rpyc.utils.server import ThreadedServer
 
 DATA_DIR = "./minion/"
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+    level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 
 class MinionService(rpyc.Service):
@@ -41,7 +43,7 @@ class MinionService(rpyc.Service):
 
         def forward(self, block_uuid, data, minions):
             LOG.info("forwaring to:")
-            LOG.info(block_uuid, minions)
+            LOG.info((block_uuid, minions))
             minion = minions[0]
             minions = minions[1:]
             host, port = minion

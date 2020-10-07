@@ -25,6 +25,7 @@ INTERVAL = 3
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 
+
 def check_for_alive_minions():
     while True:
         to_remove = set()
@@ -36,7 +37,7 @@ def check_for_alive_minions():
             result_of_check = a_socket.connect_ex(location)
 
             if result_of_check != 0:
-                LOG.info(minion, location, "DEAD")
+                LOG.info(f"{minion} {location} DEAD")
                 to_remove.add(minion)
 
         for minion in to_remove:
@@ -63,8 +64,6 @@ def set_conf():
     if os.path.isfile('fs.img'):
         MasterService.exposed_Master.minions, MasterService.exposed_Master.file_table, MasterService.exposed_Master.block_mapping, MasterService.exposed_Master.dir_tree = pickle.load(
             open('fs.img', 'rb'))
-
-
 
 
 class MasterService(rpyc.Service):
@@ -143,7 +142,6 @@ class MasterService(rpyc.Service):
                 minion = con.root.Minion()
                 total_size += minion.init()
             return total_size // self.__class__.replication_factor
-
 
         def exposed_get_block_size(self):
             return self.__class__.block_size
