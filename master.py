@@ -53,18 +53,13 @@ def int_handler(signal, frame):
 
 def set_conf():
     conf = configparser.ConfigParser()
-    conf.readfp(open('dfs.conf'))
+    conf.read_file(open('dfs.conf'))
     MasterService.exposed_Master.block_size = int(conf.get('master', 'block_size'))
     MasterService.exposed_Master.replication_factor = int(conf.get('master', 'replication_factor'))
-    minions = conf.get('master', 'minions').split(',')
 
     if os.path.isfile('fs.img'):
         MasterService.exposed_Master.minions, MasterService.exposed_Master.file_table, MasterService.exposed_Master.block_mapping, MasterService.exposed_Master.dir_tree = pickle.load(
             open('fs.img', 'rb'))
-    else:
-        for m in minions:
-            id, host, port = m.split(":")
-            MasterService.exposed_Master.minions[id] = (host, port)
 
 
 
