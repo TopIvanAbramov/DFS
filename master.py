@@ -132,20 +132,38 @@ class MasterService(rpyc.Service):
             MasterService.exposed_Master.minions[str(new_id)] = (host, port)
             print("NEW MINION WAS REGISTERED")
         
-        def exposed_remove_dir(self, CURRENT_DIR, force):
-            if master.dir_exists(CURRENT_DIR):
-                dir_node = master.get_dir_with_path(CURRENT_DIR)
+        def exposed_remove_dir(self, path, force):
+            if master.dir_exists(path):
+                dir_node = master.get_dir_with_path(path)
                 
                 if force:
-                    pass
-#                    force delete
+                    if bool(dir.files):
+                        for file_name in dir_node.files.keys():
+                            file_path = path + "/" + file_name
+                            self.exposed_delete_file(self, path)
+                        
+                        for child in dir.children:
+                            self.remove_child(dir, child)
+                            self.exposed_remove_dir(self.node_path(child), True)
+#                        raise NameError("Cannot remove directory it has internal files, Use rm -f dir_path instead")
                 else:
                     if bool(dir.files):
-                        raise NameError("Cannot remove directory it is not empty, Use rm -f dir_path instead")
+                        raise NameError("Cannot remove directory it has internal files, Use rm -f dir_path instead")
                     else:
-                        
+                        if bool(dir_node.children):
+                            raise NameError("Cannot remove directory it is has subdirectorie, Use rm -f dir_path instead")
+                        else:
+                            root_node = dir_node.parent
+                            self.remove_child(root_node, dir_node)
             else:
                 raise NameError("Directory not exists")
+        
+        def remove_child(self, root, node):
+            childrens = list(root.children)
+
+            childrens.remove(node)
+
+            root.children = tuple(childrens)
 
         def exposed_init(self):
             total_size = 0
