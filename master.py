@@ -11,6 +11,7 @@ import pickle
 import sys
 import os
 import datetime
+import logging
 
 from rpyc.utils.server import ThreadedServer
 from anytree import NodeMixin, RenderTree, AnyNode
@@ -21,6 +22,8 @@ from collections import defaultdict
 
 INTERVAL = 3
 
+logging.basicConfig(level=logging.DEBUG)
+LOG = logging.getLogger(__name__)
 
 def check_for_alive_minions():
     while True:
@@ -33,7 +36,7 @@ def check_for_alive_minions():
             result_of_check = a_socket.connect_ex(location)
 
             if result_of_check != 0:
-                print(minion, location, "DEAD")
+                LOG.info(minion, location, "DEAD")
                 to_remove.add(minion)
 
         for minion in to_remove:
@@ -130,7 +133,7 @@ class MasterService(rpyc.Service):
             else:
                 new_id = 0
             MasterService.exposed_Master.minions[str(new_id)] = (host, port)
-            print("NEW MINION WAS REGISTERED")
+            LOG.info("NEW MINION WAS REGISTERED")
 
         def exposed_init(self):
             total_size = 0
