@@ -121,7 +121,7 @@ def change_dir(master, new_dir):
 
 
 def move(master, file_path, new_dir):
-    master.move(file_path, new_dir)
+    master.move(CURRENT_DIR + "/" + file_path, new_dir)
     
 def make_dir_at_path(master, dir_name):
     if not "/" in dir_name:
@@ -131,6 +131,9 @@ def make_dir_at_path(master, dir_name):
 
 def rm(master, dir_name, force=True):
     master.remove_dir(CURRENT_DIR + "/" + dir_name, force)
+    
+def health_check(master):
+    print(master.health_check())
 
 def dir_tree(master):
     print(master.dir_tree())
@@ -158,8 +161,8 @@ def main():
                 init(master)
             elif args[0] == "put":
                 put(master, args[1], args[2])
-            elif args[0] == "rename" or args[0] == "move":
-                rename_move(master, args[1], args[2])
+#            elif args[0] == "rename":
+#                rename_move(master, args[1], args[2])
             elif args[0] == "delete":
                 delete_file(master, args[1])
             elif args[0] == "ls":
@@ -172,7 +175,7 @@ def main():
                 make_dir_at_path(master, args[1])
             elif args[0] == "tree":
                 dir_tree(master)
-            elif args[0] == "tree":
+            elif args[0] == "move":
                 move(master, args[1], args[2])
             elif args[0] == "rm":
                 if args[1] == "-f":
@@ -180,6 +183,8 @@ def main():
                     print("False")
                 else:
                     rm(master, args[1], force=False)
+            elif args[0] == "health":
+                health_check(master)
             elif args[0] == "clear":
                 clear()
             else:
