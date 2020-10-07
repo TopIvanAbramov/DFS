@@ -39,7 +39,7 @@ We have implemented such client commands in our Distributed File System:
 - `info file_path` - provides information about the file
 - `copy file_path` - creates a copy of file in the same directory
 - `move file_path distanation_path` - moves a file to the specified path
-- `cd directory_path` - changes directory
+- `cd directory_path` - changes directory (use `cd ~` to change to the root directory)
 - `ls` - returns list of files, which are stored in the directory
 - `mkdir directory_name` - creates a new directory
 - `rm directory_path` - deletes directory, if the directory contains files asks for confirmation from the user before deletion
