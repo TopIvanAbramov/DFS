@@ -38,7 +38,6 @@ We have implemented such client commands in our Distributed File System:
 - `delete file_path` - deletes any file from DFS
 - `info file_path` - provides information about the file
 - `copy file_path` - creates a copy of file in the same directory
-- `rename file_path new_file_name` - renames a file to the specified name
 - `move file_path distanation_path` - moves a file to the specified path
 - `cd directory_path` - changes directory
 - `ls` - returns list of files, which are stored in the directory
