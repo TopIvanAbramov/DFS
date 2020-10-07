@@ -124,8 +124,10 @@ class MasterService(rpyc.Service):
                             if node_id in file_block[1]:
                                 file_block[1].remove(node_id)
                                 if len(file_block[1]) == 0:
-                                    del node.files[file_name]
-                                    break
+                                    try:
+                                        del node.files[file_name]
+                                    except:
+                                        pass
 
 #            for pre, fill, node in RenderTree(root):
 #                print("%s%s" % (pre, MasterService.exposed_Master.get_blocks(node)))
@@ -138,12 +140,20 @@ class MasterService(rpyc.Service):
             for node in PostOrderIter(root):
                 if hasattr(node, 'files'):
                     for file_name in list(node.files.keys()):
+
+                        if len(node.files[file_name].blocks) == 0:
+                            del node.files[file_name]
+                            LOG.info("DELETE FILE {} FROM DIR {}".format(file_name, self.node_path(node)))
+                            count += 1
+                            continue
+                        
                         for file_block in node.files[file_name].blocks:
                             if len(file_block[1]) == 0:
                                 del node.files[file_name]
+                                
                                 count += 1
                                 LOG.info("DELETE FILE {} FROM DIR {}".format(file_name, self.node_path(node)))
-                                break
+                                continue
                                 
             return "Deleted: {} files".format(count)
             
@@ -391,7 +401,7 @@ class MasterService(rpyc.Service):
             return minion.get(block_uuid)
         
         def send_to_minion(self, block_uuid, data, minions):
-            LOG.info("sending: " + str(block_uuid) + str(minions))
+#            LOG.info("sending: " + str(block_uuid) + str(minions))
             minion = minions[0]
             minions = minions[1:]
             host, port = minion
