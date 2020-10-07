@@ -34,7 +34,7 @@ We have implemented such client commands in our Distributed File System:
 - `init` - initializes the client storage on a new system, removes any existing file in the dfs root directory and returns available size
 - `create file_name` - creates a new empty file
 - `get file_path` - downloads a file from the DFS to the Client side
-- `put local_file_path` - uploads a file from the Client side to the DFS
+- `put local_file_path remote_file_path` - uploads a file from the Client side to the DFS
 - `delete file_path` - deletes any file from DFS
 - `info file_path` - provides information about the file
 - `copy file_path` - creates a copy of file in the same directory
