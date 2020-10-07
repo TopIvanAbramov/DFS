@@ -140,7 +140,7 @@ def clear():
 
 
 def main():
-    con = rpyc.connect("localhost", port=2131)
+    con = rpyc.connect(os.environ["MASTER_HOST"], port=int(os.environ["MASTER_PORT"]))
     master = con.root.Master()
 
     while True:
