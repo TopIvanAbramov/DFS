@@ -25,9 +25,11 @@ class MinionService(rpyc.Service):
             shutil.rmtree(DATA_DIR, ignore_errors=True)
             os.mkdir(DATA_DIR)
             total, used, free = shutil.disk_usage(DATA_DIR)
-            
-            shutil.rmtree(DATA_DIR, ignore_errors=True)
-            os.mkdir(DATA_DIR)
+            try:
+                shutil.rmtree(DATA_DIR, ignore_errors=True)
+                os.mkdir(DATA_DIR)
+            except Exception as e:
+                logging.error(e)
             
             LOG.info("MINION WAS INITIALIZED")
             
