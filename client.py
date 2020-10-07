@@ -161,8 +161,6 @@ def main():
                 init(master)
             elif args[0] == "put":
                 put(master, args[1], args[2])
-#            elif args[0] == "rename":
-#                rename_move(master, args[1], args[2])
             elif args[0] == "delete":
                 delete_file(master, args[1])
             elif args[0] == "ls":

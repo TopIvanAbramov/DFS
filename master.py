@@ -199,24 +199,27 @@ class MasterService(rpyc.Service):
                 
                 if force:
                     if bool(dir_node.files):
-                        keys = dir_node.files.keys()
+                        keys = list(dir_node.files)
                         
                         for file_name in keys:
                             file_path = path + "/" + file_name
                             self.exposed_delete_file(file_path)
-                        
-                        childrens = dir_node.children
-                        
-                        for child in childrens:
-                            self.exposed_remove_dir(self.node_path(child), True)
-                            self.remove_child(dir, child)
+                    
+                    if not bool(dir_node.children):
+                        return 1
+                    
+                    for child in dir_node.children:
+                        self.exposed_remove_dir(self.node_path(child), True)
+
+                    self.remove_child(dir_node.parent, dir_node)
                             
                 else:
+                    
                     if bool(dir_node.files):
                         raise NameError("Cannot remove directory it has internal files, Use rm -f dir_path instead")
                     else:
                         if bool(dir_node.children):
-                            raise NameError("Cannot remove directory it is has subdirectorie, Use rm -f dir_path instead")
+                            raise NameError("Cannot remove directory it has subdirectorie, Use rm -f dir_path instead")
                         else:
                             root_node = dir_node.parent
                             self.remove_child(root_node, dir_node)
