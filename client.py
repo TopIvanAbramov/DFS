@@ -132,6 +132,8 @@ def make_dir_at_path(master, dir_name):
 def rm(master, dir_name, force=True):
     master.remove_dir(CURRENT_DIR + "/" + dir_name, force)
     
+    print("Dir: ", CURRENT_DIR + "/" + dir_name)
+    
 def health_check(master):
     print(master.health_check())
 
