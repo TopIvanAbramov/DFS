@@ -18,17 +18,17 @@ Our file system supports file reading, writing, creation, deletion, copy, moving
 
 We have chosen Python language for Distributed File System implementation.
 
-## Hot to install. Server.
+## How to install. Server.
 
 Run `python3 master.py` on your server machine, to run Name Server
 
 Run `python3 minion.py port_number` on your server machine, to run Storage Server
 
-## Hot to install. Client.
+## How to install. Client.
 
 Run `python3 client.py` on your client machine, then proceed to the commands (see below).
 
-## Hot to use. Client.
+## How to use. Client.
 
 We have implemented such client commands in our Distributed File System:
 - `init` - initializes the client storage on a new system, removes any existing file in the dfs root directory and returns available size
