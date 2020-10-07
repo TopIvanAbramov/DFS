@@ -58,7 +58,7 @@ def get(master, fname):
 #  Change file name/move file
 
 def rename_move(master, old_path, new_path):
-    master.change_filepath(old_path, new_path)
+    master.change_filepath(CURRENT_DIR + "/" + old_path, new_path)
 
 
 def delete_file(master, path):
@@ -125,14 +125,15 @@ def move(master, file_path, new_dir):
     
 def make_dir_at_path(master, dir_name):
     if not "/" in dir_name:
-        master.make_dir_at_path(CURRENT_DIR + "/" + dir_name)
+        if not master.dir_exists(CURRENT_DIR + "/" + dir_name):
+            master.make_dir_at_path(CURRENT_DIR + "/" + dir_name)
+        else:
+            raise NameError("Cannot create a directory because dir with the same name exists")
     else:
         raise NameError("Directory name cannot contain '/'")
 
 def rm(master, dir_name, force=True):
     master.remove_dir(CURRENT_DIR + "/" + dir_name, force)
-    
-    print("Dir: ", CURRENT_DIR + "/" + dir_name)
     
 def health_check(master):
     print(master.health_check())
@@ -190,7 +191,8 @@ def main():
             else:
                 raise NameError("Unknown command")
         except Exception as e:
-            print(e)
+            print(e.args[0])
+#            print(e)
 
 
 if __name__ == "__main__":
