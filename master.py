@@ -132,9 +132,18 @@ class MasterService(rpyc.Service):
             MasterService.exposed_Master.minions[str(new_id)] = (host, port)
             print("NEW MINION WAS REGISTERED")
         
-        def exposed_remove_dir(CURRENT_DIR):
+        def exposed_remove_dir(self, CURRENT_DIR, force):
             if master.dir_exists(CURRENT_DIR):
-                master.remove_dir(CURRENT_DIR)
+                dir_node = master.get_dir_with_path(CURRENT_DIR)
+                
+                if force:
+                    pass
+#                    force delete
+                else:
+                    if bool(dir.files):
+                        raise NameError("Cannot remove directory it is not empty, Use rm -f dir_path instead")
+                    else:
+                        
             else:
                 raise NameError("Directory not exists")
 
