@@ -2,6 +2,7 @@ import rpyc
 import sys
 import os
 import logging
+from hurry.filesize import size
 
 from anytree import NodeMixin, RenderTree, AnyNode
 
@@ -130,6 +131,10 @@ def dir_tree(master):
     print(master.dir_tree())
 
 
+def init(master):
+    print(size(master.init()))
+
+
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
@@ -144,6 +149,8 @@ def main():
 
             if args[0] == "get":
                 get(master, args[1])
+            elif args[0] == "init":
+                init(master)
             elif args[0] == "put":
                 put(master, args[1])
             elif args[0] == "rename" or args[0] == "move":
