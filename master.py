@@ -205,14 +205,11 @@ class MasterService(rpyc.Service):
                             file_path = path + "/" + file_name
                             self.exposed_delete_file(file_path)
                     
-                    if not bool(dir_node.children):
-                        return 1
-                    
                     for child in dir_node.children:
                         self.exposed_remove_dir(self.node_path(child), True)
 
                     self.remove_child(dir_node.parent, dir_node)
-                            
+                           
                 else:
                     
                     if bool(dir_node.files):
