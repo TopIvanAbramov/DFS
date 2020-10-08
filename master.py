@@ -254,6 +254,7 @@ class MasterService(rpyc.Service):
 
                 del old_dir.files[file_name]
             
+
         def exposed_init(self):
             total_size = 0
             for minion in self.__class__.minions.values():
@@ -261,6 +262,9 @@ class MasterService(rpyc.Service):
                 con = rpyc.connect(host, port=port)
                 minion = con.root.Minion()
                 total_size += minion.init()
+            
+            self.__class__.dir_tree = AnyNode(name=".", files=defaultdict(DataNode))
+            
             return total_size // self.__class__.replication_factor
 
         def exposed_get_block_size(self):
