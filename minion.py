@@ -54,7 +54,9 @@ class MinionService(rpyc.Service):
 
         def exposed_delete_block(self, uuid):
             block_addr = DATA_DIR + str(uuid)
-            os.remove(block_addr)
+            
+            if os.path.exists(block_addr):
+                os.remove(block_addr)
 
 
 def parse_command_line_arguments():  # parse command arguments

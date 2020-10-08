@@ -15,6 +15,7 @@ import logging
 
 from rpyc.utils.server import ThreadedServer
 from anytree import NodeMixin, RenderTree, AnyNode
+from anytree.iterators.postorderiter import PostOrderIter
 from anytree.search import find
 
 from datanode import DataNode
@@ -42,8 +43,12 @@ def check_for_alive_minions():
 
         for minion in to_remove:
             del MasterService.exposed_Master.minions[minion]
+            
+            MasterService.exposed_Master.delete_node_id(MasterService.exposed_Master.dir_tree, minion)
 
         time.sleep(INTERVAL)
+        
+#        MasterService.exposed_Master.minions[str(new_id)] = (host, port)
 
 
 def int_handler(signal, frame):
@@ -72,7 +77,7 @@ class MasterService(rpyc.Service):
         block_mapping = {}
         minions = {}
 
-        dir_tree = AnyNode(name=".", files=defaultdict(list))
+        dir_tree = AnyNode(name=".", files=defaultdict(DataNode))
 
         block_size = 0
         replication_factor = 0
@@ -98,13 +103,64 @@ class MasterService(rpyc.Service):
 
             dir = self.get_dir_with_path(dir_path)
 
-            file_table = dir.files[file_name].blocks
-
-            for block in file_table:
-                for m in [self.exposed_get_minions()[_] for _ in block[1]]:
-                    self.delete_block(block[0], m)
+            file_table = dir.files[file_name]
+            
+            
+            if hasattr(file_table, 'blocks'):
+                for block in file_table.blocks:
+                    for i in block[1]:
+                        print("Minion: ", i)
+            
+#            raise NameError("Error {}".format(dir.files[file_name]))
+            
+            if hasattr(file_table, 'blocks'):
+                for block in file_table.blocks:
+                    for m in [self.exposed_get_minions_by_id(_) for _ in block[1]]:
+                        self.delete_block(block[0], m)
 
             del dir.files[file_name]
+        
+        def delete_node_id(root, node_id):
+            LOG.info("DELETE MINION ID {} FROM MAPPING".format(node_id))
+            
+            for node in PostOrderIter(root):
+                if hasattr(node, 'files'):
+                    for file_name in list(node.files.keys()):
+                        for file_block in node.files[file_name].blocks:
+                            if node_id in file_block[1]:
+                                file_block[1].remove(node_id)
+                                if len(file_block[1]) == 0:
+                                    del node.files[file_name]
+                                    break
+
+            for pre, fill, node in RenderTree(root):
+                print("%s%s" % (pre, MasterService.exposed_Master.get_blocks(node)))
+        
+        def exposed_health_check(self):
+            root = self.exposed_get_dir_tree()
+            
+            count = 0
+            
+            for node in PostOrderIter(root):
+                if hasattr(node, 'files'):
+                    for file_name in list(node.files.keys()):
+                        for file_block in node.files[file_name].blocks:
+                            if len(file_block[1]) == 0:
+                                del node.files[file_name]
+                                count += 1
+                                LOG.info("DELETE FILE {} FROM DIR {}".format(file_name, self.node_path(node)))
+                                
+            return "Deleted: {} files".format(count)
+            
+        def get_blocks(node):
+            blocks = "map: "
+            if hasattr(node, 'files'):
+                for file_name in node.files.keys():
+                    blocks += file_name + " : "
+                    for file_block in node.files[file_name].blocks:
+                        blocks = blocks + str(file_block[0]) + " : " + str(file_block[1]) + "; "
+            return blocks
+            
 
         def delete_block(self, block_uuid, minion):
             host, port = minion
@@ -122,6 +178,7 @@ class MasterService(rpyc.Service):
             dir = self.get_dir_with_path(dir_path)
 
             if dir != None:
+#                raise NameError("Error {} {}".format(dir_path, file_name))
                 return dir.files[file_name].blocks
             else:
                 return []
@@ -171,7 +228,31 @@ class MasterService(rpyc.Service):
             childrens.remove(node)
 
             root.children = tuple(childrens)
+        
+        def exposed_move(self, file_path, new_dir_path):
+            if self.exposed_dir_exists(new_dir_path):
+            
+                old_dir_path = file_path[:file_path.rfind('/')]
 
+                file_name = file_path.split('/')[-1]
+                
+                old_dir = self.get_dir_with_path(old_dir_path)
+                
+                new_dir = self.get_dir_with_path(new_dir_path)
+                data_node = self.get_data_node_with_path(file_path)
+                
+                self.create_file_at_path(new_dir_path + "/" + file_name, data_node)
+                
+#                raise NameError("Error {}".format(file_path))
+                
+                self.exposed_delete_file(file_path)
+                
+                for block in data_node.blocks:
+                    for m in [self.exposed_get_minions()[_] for _ in block[1]]:
+                        self.delete_block(block[0], m)
+
+                del old_dir.files[file_name]
+            
         def exposed_init(self):
             total_size = 0
             for minion in self.__class__.minions.values():
@@ -185,6 +266,14 @@ class MasterService(rpyc.Service):
             return self.__class__.block_size
 
         def exposed_get_minions(self):
+            return self.__class__.minions
+        
+        def exposed_get_minions_by_id(self, id):
+            try:
+                 return self.__class__.minions[id]
+            except:
+                return None
+                
             return self.__class__.minions
 
         def exposed_get_dir_tree(self):
@@ -203,12 +292,12 @@ class MasterService(rpyc.Service):
                 nodes_ids = random.sample(self.__class__.minions.keys(), self.__class__.replication_factor)
                 blocks.append((block_uuid, nodes_ids))
 
-                node = DataNode(metadata={
-                    "Size": size,
-                    "Created at": str(datetime.datetime.now())
-                },
-                    blocks=blocks
-                )
+            node = DataNode(metadata={
+                "Size": size,
+                "Created at": str(datetime.datetime.now())
+            },
+                blocks=blocks
+            )
 
             self.create_file_at_path(dest, node)
 
@@ -275,7 +364,7 @@ class MasterService(rpyc.Service):
 
                     dir_node.files[file_name] = node
                 else:
-                    dir_node.files = defaultdict(list)
+                    dir_node.files = defaultdict(DataNode)
 
                     for key in dir_node.files.keys():
                         if key == file_name:
@@ -302,6 +391,7 @@ class MasterService(rpyc.Service):
 
             dir = self.get_dir_with_path(dir_path)
 
+#            raise NameError("Error {} {}".format(path, dir_path))
             return dir.files[file_name]
 
         def exposed_make_dir_at_path(self, path):
@@ -314,7 +404,7 @@ class MasterService(rpyc.Service):
             dir_node = find(root, lambda node: self.node_path(node) == dir_path)
 
             if dir_node != None:
-                new_dir = AnyNode(name=new_dir_name, parent=dir_node, files=defaultdict(list))
+                new_dir = AnyNode(name=new_dir_name, parent=dir_node, files=defaultdict(DataNode))
             else:
                 raise NameError("Cannot create dir: {} {}".format(dir_path, path))
 
