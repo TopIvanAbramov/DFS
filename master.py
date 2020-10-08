@@ -133,8 +133,8 @@ class MasterService(rpyc.Service):
                                     del node.files[file_name]
                                     break
 
-            for pre, fill, node in RenderTree(root):
-                print("%s%s" % (pre, MasterService.exposed_Master.get_blocks(node)))
+#            for pre, fill, node in RenderTree(root):
+#                print("%s%s" % (pre, MasterService.exposed_Master.get_blocks(node)))
         
         def exposed_health_check(self):
             root = self.exposed_get_dir_tree()
@@ -149,6 +149,7 @@ class MasterService(rpyc.Service):
                                 del node.files[file_name]
                                 count += 1
                                 LOG.info("DELETE FILE {} FROM DIR {}".format(file_name, self.node_path(node)))
+                                break
                                 
             return "Deleted: {} files".format(count)
             
