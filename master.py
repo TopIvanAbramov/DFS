@@ -230,29 +230,21 @@ class MasterService(rpyc.Service):
 
             root.children = tuple(childrens)
         
-        def exposed_move(self, file_path, new_dir_path):
+        def exposed_move(self, file_path, new_file_path):
+            new_dir_path = new_file_path[:new_file_path.rfind('/')]
+            
             if self.exposed_dir_exists(new_dir_path):
             
                 old_dir_path = file_path[:file_path.rfind('/')]
-
-                file_name = file_path.split('/')[-1]
                 
                 old_dir = self.get_dir_with_path(old_dir_path)
                 
                 new_dir = self.get_dir_with_path(new_dir_path)
                 data_node = self.get_data_node_with_path(file_path)
                 
-                self.create_file_at_path(new_dir_path + "/" + file_name, data_node)
-                
-#                raise NameError("Error {}".format(file_path))
+                self.create_file_at_path(new_file_path, data_node)
                 
                 self.exposed_delete_file(file_path)
-                
-                for block in data_node.blocks:
-                    for m in [self.exposed_get_minions()[_] for _ in block[1]]:
-                        self.delete_block(block[0], m)
-
-                del old_dir.files[file_name]
             
 
         def exposed_init(self):
