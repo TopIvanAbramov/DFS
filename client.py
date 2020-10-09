@@ -3,7 +3,8 @@ import sys
 import os
 import logging
 from hurry.filesize import size
-
+import tqdm
+import time
 from anytree import NodeMixin, RenderTree, AnyNode
 
 CURRENT_DIR = "."
@@ -13,7 +14,7 @@ LOG = logging.getLogger(__name__)
 
 
 def send_to_minion(block_uuid, data, minions):
-    LOG.info("sending: " + str(block_uuid) + str(minions))
+#    LOG.info("sending: " + str(block_uuid) + str(minions))
     minion = minions[0]
     minions = minions[1:]
     host, port = minion
@@ -44,15 +45,32 @@ def get(master, fname):
     new_filename = get_new_filename(name, extension)
     f = open(new_filename, "wb")
 
-    for block in file_table:
-        for m in [master.get_minions()[_] for _ in block[1]]:
-            data = read_from_minion(block[0], m)
-            if data:
-                f.write(data)
-                break
-            else:
-                LOG.info("No blocks found. Possibly a corrupt file")
-    f.close()
+    try:
+        size = int(master.file_info(CURRENT_DIR + "/" + fname)['Size'])
+    except:
+        size = 0
+    
+    progress = tqdm.tqdm(range(size), "Sending {}".format(name), unit="B", mininterval=0,
+       leave=True, unit_scale=True, unit_divisor=1000)                         # this object display progress bar
+       
+       
+    for _ in progress:
+        for block in file_table:
+            for m in [master.get_minions()[_] for _ in block[1]]:
+                data = read_from_minion(block[0], m)
+                if data:
+                    progress.update(len(data))
+                    f.write(data)
+                    break
+                else:
+                    LOG.info("No blocks found. Possibly a corrupt file")
+        f.close()
+        progress.disable = True
+        break
+    
+    
+    time.sleep(0.5)
+    clear()
 
 
 #  Change file name/move file
@@ -84,16 +102,35 @@ def get_new_filename(name, extension):
         f.close()
         return name + "." + extension
 
-
+    
 def put(master, source, destination):
+    file_name = source.split('/')[-1]
+    
+    if not os.path.isfile(source):
+        raise NameError("File does not exists")
+        
     size = os.path.getsize(source)
     blocks = master.write(CURRENT_DIR + "/" + destination, size)
-    with open(source, 'rb') as f:
+    
+    f = open(source, 'rb')
+    
+    
+    progress = tqdm.tqdm(range(size), "Sending {}".format(file_name), unit="B", mininterval=0,
+    leave=True, unit_scale=True, unit_divisor=1000)                         # this object display progress bar
+
+    for _ in progress:
         for b in blocks:
             data = f.read(master.get_block_size())
+            progress.update(len(data))
             block_uuid = b[0]
             minions = [master.get_minions()[_] for _ in b[1]]
             send_to_minion(block_uuid, data, minions)
+        
+        progress.disable = True
+        break
+        
+    time.sleep(0.5)
+    clear()
 
 def create_empty_file(master, destination):
     size = 0
