@@ -107,7 +107,7 @@ class MasterService(rpyc.Service):
             file_table = dir.files[file_name]
             
             
-            if hasattr(file_table, 'blocks'):                
+            if hasattr(file_table, 'blocks'):
                 for block in file_table.blocks:
                     for m in [self.exposed_get_minions_by_id(_) for _ in block[1]]:
                         self.delete_block(block[0], m)
@@ -247,8 +247,50 @@ class MasterService(rpyc.Service):
                 self.create_file_at_path(new_file_path, data_node)
                 
                 del old_dir.files[file_name]
+        
+        def exposed_copy(self, file_path):
+                file_name = file_path.split('/')[-1]
                 
-#                self.exposed_delete_file(file_path)
+                if file_name == "":
+                    raise NameError("File cannot have empty name")
+                
+                if not '.' in file_name:
+                    raise NameError("Please, specify file extension")
+                
+                dir_path = file_path[:file_path.rfind('/')]
+                
+                dir = self.get_dir_with_path(dir_path)
+                
+                name, extension = file_name.split('.')
+                
+                i = 1
+                new_file_name = name + "_copy{}.{}".format(i, extension)
+                    
+                while True:
+                    if not new_file_name in dir.files.keys():
+                        break
+                    i += 1
+                    new_file_name = name + "_copy{}.{}".format(i, extension)
+                
+                data_node = self.get_data_node_with_path(file_path)
+                
+                size = int(data_node.metadata["Size"])
+                
+                old_blocks = data_node.blocks
+                new_blocks = self.exposed_write(dir_path + "/" +  new_file_name, size)
+                
+                
+                if not len(old_blocks) == len(new_blocks):
+                    raise NameError("Corrupted file")
+                
+                for i in range(len(old_blocks)):
+                    for m in [self.exposed_get_minions()[_] for _ in old_blocks[i][1]]:
+                        data = self.read_from_minion(old_blocks[i][0], m)
+                
+                        block_uuid = new_blocks[i][0]
+                        minions = [self.exposed_get_minions()[_] for _ in new_blocks[i][1]]
+                        self.send_to_minion(block_uuid, data, minions)
+                
             
 
         def exposed_init(self):
@@ -342,11 +384,21 @@ class MasterService(rpyc.Service):
         def exposed_file_info(self, path):
             return self.get_data_node_with_path(path).metadata
 
-        def read_from_minion(master, block_uuid, minion):
+        def read_from_minion(self, block_uuid, minion):
             host, port = minion
             con = rpyc.connect(host, port=port)
             minion = con.root.Minion()
             return minion.get(block_uuid)
+        
+        def send_to_minion(self, block_uuid, data, minions):
+            LOG.info("sending: " + str(block_uuid) + str(minions))
+            minion = minions[0]
+            minions = minions[1:]
+            host, port = minion
+
+            con = rpyc.connect(host, port=port)
+            minion = con.root.Minion()
+            minion.put(block_uuid, data, minions)
 
         def create_file_at_path(self, path, node):
             root = self.exposed_get_dir_tree()
