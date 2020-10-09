@@ -12,6 +12,7 @@ import sys
 import os
 import datetime
 import logging
+import re
 
 from rpyc.utils.server import ThreadedServer
 from anytree import NodeMixin, RenderTree, AnyNode
@@ -106,14 +107,7 @@ class MasterService(rpyc.Service):
             file_table = dir.files[file_name]
             
             
-            if hasattr(file_table, 'blocks'):
-                for block in file_table.blocks:
-                    for i in block[1]:
-                        print("Minion: ", i)
-            
-#            raise NameError("Error {}".format(dir.files[file_name]))
-            
-            if hasattr(file_table, 'blocks'):
+            if hasattr(file_table, 'blocks'):                
                 for block in file_table.blocks:
                     for m in [self.exposed_get_minions_by_id(_) for _ in block[1]]:
                         self.delete_block(block[0], m)
@@ -235,6 +229,14 @@ class MasterService(rpyc.Service):
             
             if self.exposed_dir_exists(new_dir_path):
             
+                file_name = file_path.split('/')[-1]
+                
+                if file_name == "":
+                    raise NameError("File cannot have empty name")
+                
+                if not '.' in file_name:
+                    raise NameError("Please, specify file extension")
+                
                 old_dir_path = file_path[:file_path.rfind('/')]
                 
                 old_dir = self.get_dir_with_path(old_dir_path)
@@ -244,7 +246,9 @@ class MasterService(rpyc.Service):
                 
                 self.create_file_at_path(new_file_path, data_node)
                 
-                self.exposed_delete_file(file_path)
+                del old_dir.files[file_name]
+                
+#                self.exposed_delete_file(file_path)
             
 
         def exposed_init(self):
@@ -397,6 +401,9 @@ class MasterService(rpyc.Service):
             dir_path = path[:path.rfind('/')]
 
             new_dir_name = path.split('/')[-1]
+            
+            if not re.match("^[_A-Za-z0-9]+$", new_dir_name):
+                raise NameError("Directory name can contain only letters, digits and '_'")
 
             dir_node = find(root, lambda node: self.node_path(node) == dir_path)
 
