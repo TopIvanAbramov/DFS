@@ -58,6 +58,12 @@ RPC is a request-response protocol. An RPC is initiated by the client, which sen
 
 Firstly, we started with reading all useful material, like how Distributed File Systems work, which approaches could be implemented and which problems might occur. Next, we have a discussion about implementation language, all of us decided to choose Python as an implementation language. After that, we proceed with designing the architecture for our Distributed File System. For this task, we had zoom meetings with discussion of our project and its structure. Then, we have distributed coding tasks between each other: Zarubin Iurii was writing code for the Name Server part, Abramov Ivan was coding Client part and Plevako Matvey was busy with Minions part. Afterwards, Zarubin Iurii has started instances on AWS for testing our Distributed File System and Plevako Matvey and Abramov Ivan proceed with testing it on AWS. Later Plevako Matvey and Abramov Ivan started code debugging and Zarubin Iurii started writing the report and documentation for our Distributed File System and advising UI/UX-design for our client CLI in Distributed File System. At the end, all of us have reviewed the code and checked it work locally on our machines and on the cloud using AWS instances with VPS. Then Plevako Matvey has created Docker images and upload them into DockerHub. During development, we have several zoom meetings to understand and distribute our tasks. For debugging we have used GitHub issues, so we have not left any problem unsolved.
 
+We have share our code snippets not only using GitHub, but also using Telegram.
+
+Here you can see our work chat with contribution of team members. (Rus)
+
+![Chat screenshot](https://github.com/TopIvanAbramov/DFS/blob/master_hbq/screenshot.png)
+
 ## 🔗 GitHub link:
 
 https://github.com/TopIvanAbramov/DFS
